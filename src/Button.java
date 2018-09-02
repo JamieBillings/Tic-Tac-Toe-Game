@@ -39,16 +39,18 @@ public class Button implements MouseListener, KeyListener
 	public Button(Main game){
 		this.game = game;
 	}
+
 	public void mouseClicked(MouseEvent e){}
 	public void mouseEntered(MouseEvent e){}
 	public void mouseExited(MouseEvent e){}
 	public void keyPressed(KeyEvent e){}	
 	public void keyTyped(KeyEvent e){}
 	
-	private String ip_string = new String();
-	private String port_string = new String();
+	public String ip_string = new String();
+	public String port_string = new String();
 
 	public boolean network_active = false;
+	public Thread online = new Network(this);
 
 	public void keyReleased(KeyEvent e)
 	{
@@ -180,14 +182,20 @@ public class Button implements MouseListener, KeyListener
 			}
 
 			if(start_btn.Collision(mx,my)){
-				if(host_btn.active){
-					System.out.println("Server Start");
-					try{
-						Thread server = new Server();
-						server.start();
-					} catch(IOException er){
-						er.printStackTrace();
+				if(!network_active){
+					if(host_btn.active){
+						System.out.println("Server Start");
+						network_active = true;
+						online.start(); 
 					}
+					else if(connect_btn.active){
+						System.out.println("Server Start");
+						network_active = true;
+						online.start();
+					}
+				}
+				else{
+					//Code to shutdown server
 				}
 			}
 
@@ -279,6 +287,8 @@ public class Button implements MouseListener, KeyListener
 			if(start_btn.Collision(mx,my)){
 				if(start_btn.state == BtnState.None){start_btn.state = BtnState.Hover;}
 			}else{start_btn.state = BtnState.None;}
+
+			if(network_active){start_btn.active = true;}
 		}
     }
 
@@ -366,7 +376,7 @@ class BaseButton
     			return true;
     		}
     	}
-
+  
     	return false;
 	}
 

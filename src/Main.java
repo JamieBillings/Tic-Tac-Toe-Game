@@ -65,7 +65,6 @@ public class Main extends JPanel
 			//game.invalidate();
 			game.events.update();
 			game.repaint();
-
 			
 			long current_time = cap_counter.getTime();
 			if(current_time < SCREEN_TICKS){
