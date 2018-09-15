@@ -14,8 +14,8 @@ public class Network extends Thread implements Runnable
 
 	public byte[] recv_buffer = new byte[256];
 	public byte[] send_buffer = new byte[256];
-	public DatagramPacket recv_packet = new DatagramPacket(recv_buffer, recv_buffer.length);
-	public DatagramPacket send_packet = new DatagramPacket(send_buffer, send_buffer.length);
+	public DatagramPacket recv_packet = new DatagramPacket(recv_buffer, recv_buffer.length); 
+	public DatagramPacket send_packet = null;
 
 	public InetAddress address;
 
@@ -57,15 +57,23 @@ public class Network extends Thread implements Runnable
 
 		if(conn_type == Connection_Type.CLIENT){
 			conn_state = Connection_State.CONNECTING;
-			try{connection = new DatagramSocket(port, address.getByName(parent.ip_string));}
+			try{connection = new DatagramSocket();}
 			catch(SocketException e){
 				e.printStackTrace();
 				parent.network_active = CloseNetwork();
 			}
+			try{address = InetAddress.getByName(parent.ip_string);}
 			catch(UnknownHostException e){
 				e.printStackTrace();
 				parent.network_active = CloseNetwork();
 			}
+			send_packet = new DatagramPacket(send_buffer, send_buffer.length, address, port);
+		}
+
+		try{connection.setSoTimeout(100);}
+		catch(SocketException e){
+			e.printStackTrace();
+			parent.network_active = CloseNetwork();
 		}
 
 
@@ -77,7 +85,12 @@ public class Network extends Thread implements Runnable
 				if((time / 1000) > 1.0){
 					parent.network_active = CloseNetwork();
 				}
-				connection.send(send_packet);
+				try{connection.send(send_packet);}
+				catch(IOException e){
+					e.printStackTrace();
+					parent.network_active = CloseNetwork();
+				}
+				System.out.println("TIME: " + time);
 			}
 
 			System.out.println("TEST 1");
@@ -86,7 +99,12 @@ public class Network extends Thread implements Runnable
 
 			}
 
-			connection.receive(recv_packet)
+			while(true){
+				try{connection.receive(recv_packet);}
+				catch(IOException e){break;}
+			}
+
+			System.out.println("CONDITION: " + parent.network_active);
 		}
 	}
 
@@ -96,6 +114,8 @@ public class Network extends Thread implements Runnable
 		conn_type = Connection_Type.NONE;
 		conn_state = Connection_State.NONE;
 		connection.close();
+
+		System.out.println("CLOSING NETWORK");
 
 		return false;
 	}

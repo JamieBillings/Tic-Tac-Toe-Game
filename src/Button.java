@@ -50,7 +50,7 @@ public class Button implements MouseListener, KeyListener
 	public String port_string = new String();
 
 	public boolean network_active = false;
-	public Thread online = new Network(this);
+	public Network online = new Network(this);
 
 	public void keyReleased(KeyEvent e)
 	{
